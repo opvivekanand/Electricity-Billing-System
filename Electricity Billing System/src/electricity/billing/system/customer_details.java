@@ -1,0 +1,115 @@
+package electricity.billing.system;
+
+import net.proteanit.sql.DbUtils;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class customer_details extends JFrame implements ActionListener {
+    Choice searchMeterCho, searchNameCho;
+    JTable table;
+    JButton search, print, close;
+
+    customer_details() {
+        super("Customer Details");
+        getContentPane().setBackground(new Color(192, 186, 254));
+
+        setSize(700, 500);
+        setLocation(400, 200);
+        setLayout(null);
+
+        JLabel searchMeter = new JLabel("Search BY Meter Number");
+        searchMeter.setBounds(20, 20, 150, 20);
+        add(searchMeter);
+
+        searchMeterCho = new Choice();
+        searchMeterCho.setBounds(180, 20, 150, 20);
+        add(searchMeterCho);
+
+        JLabel searchName = new JLabel("Search BY Name");
+        searchName.setBounds(400, 20, 100, 20);
+        add(searchName);
+
+        searchNameCho = new Choice();
+        searchNameCho.setBounds(520, 20, 150, 20);
+        add(searchNameCho);
+
+        // Database Connection
+        try {
+            database c = new database();
+            ResultSet resultSet = c.statement.executeQuery("SELECT * FROM new_customer");
+
+            while (resultSet.next()) {
+                searchMeterCho.add(resultSet.getString("meter_no"));
+                searchNameCho.add(resultSet.getString("name"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // JTable for displaying customer details
+        table = new JTable();
+        try {
+            database c = new database();
+            ResultSet resultSet = c.statement.executeQuery("SELECT * FROM new_customer");
+
+            table.setModel(DbUtils.resultSetToTableModel(resultSet));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // JScrollPane for the table
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBounds(0, 100, 700, 300); // Adjusted height to fit the window
+        add(sp);
+
+        search = new JButton("Search");
+        search.setBackground(Color.white);
+        search.setBounds(20, 70, 80, 20);
+        search.addActionListener(this);
+        add(search);
+
+        print = new JButton("Print");
+        print.setBackground(Color.white);
+        print.setBounds(120, 70, 80, 20);
+        print.addActionListener(this);
+        add(print);
+
+        close = new JButton("Close");
+        close.setBackground(Color.white);
+        close.setBounds(600, 70, 80, 20);
+        close.addActionListener(this);
+        add(close);
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == search) {
+            String query_search = "SELECT * FROM new_customer WHERE meter_no='" + searchMeterCho.getSelectedItem() + "' AND name ='" + searchNameCho.getSelectedItem() + "'";
+            try {
+                database c = new database();
+                ResultSet resultSet = c.statement.executeQuery(query_search);
+                table.setModel(DbUtils.resultSetToTableModel(resultSet));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } else if (e.getSource() == print) {
+            try {
+                table.print();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } else if (e.getSource() == close) {
+            dispose();
+        }
+    }
+
+    public static void main(String[] args) {
+        new customer_details();
+    }
+}
